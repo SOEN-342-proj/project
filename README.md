@@ -168,7 +168,6 @@ Trigger: User wants to create a new task.
   - a.taskID = t.taskID
   - a.description = "Status Updated to: " + status
 - t remains stored in the system regardless of status.
-
   
 #### assignToProject(taskId, projectId) : boolean success
 
@@ -261,7 +260,6 @@ Trigger: User wants to create a new task.
   - a.taskID = t.taskID
   - a.description = "Tag " + TagName + "Added"
  
-
 #### removeTag(taskId, tagName) : void
 
 **Preconditions**
@@ -277,5 +275,39 @@ Trigger: User wants to create a new task.
   - a.taskID = t.taskID
   - a.description = "Tag " + TagName + "Removed"
  
+#### updateProject(projectId, name?, description?) : void
 
+**Preconditions**
+- Project(projectId) exists.
 
+**Postconditions**
+- For Project p = Project(projectId):
+  - If name provided, p.name updated.
+  - If description provided, p.description updated.
+ 
+#### listTasks(filter?) : Task[] tasks
+
+**Preconditions**
+- None.
+
+**Postconditions**
+- Returns tasks matching filter (if provided); otherwise returns all tasks.
+- No state changes occur.
+
+#### listByTags(tagName) : Task[] tasks
+
+**Preconditions**
+- Tag(tagName) exists.
+
+**Postconditions**
+- Returns all tasks associated with Tag(tagName).
+- No state changes occur.
+
+#### getTaskActivity(taskId) : TaskActivity[] activity
+
+**Preconditions**
+- Task(taskId) exists.
+
+**Postconditions**
+- Returns the activity history entries for the task in chronological order.
+- No state changes occur.
