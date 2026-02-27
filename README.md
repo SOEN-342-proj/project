@@ -28,6 +28,57 @@
 
 
 ## One fully-dressed scenario for a critical use-case, with at least one success and one failure case (equivalent system sequence diagram to be provided in the above)
+1) Fully-dressed use case (critical): Create Task
+
+Use Case Name: Create Task
+Scope: Task Management System (black box)
+Level: User goal
+Primary Actor: User
+Trigger: User wants to create a new task.
+
+Preconditions:
+
+System is available.
+
+User is able to create tasks.
+
+Success Guarantee (Postconditions):
+
+Task is created and stored (with required fields + defaults like status=open, creation date).
+
+Activity history records a “Task created” entry.
+
+Minimal Guarantee (Failure):
+
+No task is created; nothing is stored; user gets an error.
+
+Main Success Scenario
+
+User requests to create a task.
+
+System asks for task fields (title required; others optional).
+
+User submits task details.
+
+System validates the inputs.
+
+System creates and stores the new task.
+
+System records an activity entry (“Task created”).
+
+System returns the new taskId to the user.
+
+Extensions (Failure case included)
+
+4a. Missing title OR invalid priority
+
+System rejects the request.
+
+System returns error(message).
+
+Use case ends (Minimal Guarantee).
+
+(That structure follows the “fully dressed” idea: stakeholders/guarantees + main success + extensions.)
 
 
 ## Identification of system operations and operation contracts
