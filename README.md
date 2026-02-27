@@ -108,7 +108,35 @@ Trigger: User wants to create a new task.
 - listTasks(filter?): Task[]
 - listByTags(tagName): Task[]
 - getTaskActivity(taskId): TaskActivity[]
+  
+---
 
 ### Operation Contracts
+
+#### createTask(title, description?, priority, dueDate?, projectId?, tagNames[]?) : int taskId
+
+**Preconditions**
+- title is not empty.
+- priority is valid.
+- If projectId is provided, Project(projectId) exists.
+
+**Postconditions**
+- A new Task t is created with:
+  - t.title = title
+  - t.description = description (if provided)
+  - t.creationDate = now
+  - t.dueDate = dueDate (if provided)
+  - t.priority = priority
+  - t.status = open
+- t is stored in Tasks.
+- If projectId is provided, t is associated with Project(projectId) (and no other).
+- If tagNames provided, for each tagName:
+  - If Tag(tagName) does not exist, it is created and stored in Tags.
+  - t is associated with Tag(tagName) (no duplicate association).
+- A new TaskActivity entry a is created with:
+  - a.timestamp = now
+  - a.description = "Task created"
+  and is associated with t.
+- Returns taskId identifying t.
 
 
