@@ -36,49 +36,65 @@ Level: User goal
 Primary Actor: User
 Trigger: User wants to create a new task.
 
-Preconditions:
+* Preconditions:
 
-System is available.
+- System is available.
 
-User is able to create tasks.
+- User is able to create tasks.
 
-Success Guarantee (Postconditions):
+* Success Guarantee (Postconditions):
 
-Task is created and stored (with required fields + defaults like status=open, creation date).
+- Task is created and stored (with required fields + defaults like status=open, creation date).
 
-Activity history records a “Task created” entry.
+- Activity history records a “Task created” entry.
 
-Minimal Guarantee (Failure):
+* Minimal Guarantee (Failure):
 
-No task is created; nothing is stored; user gets an error.
+- No task is created; nothing is stored; user gets an error.
 
-Main Success Scenario
+* Main Success Scenario
 
-User requests to create a task.
+1. User requests to create a task.
 
-System asks for task fields (title required; others optional).
+2. System asks for task fields (title required; others optional).
 
-User submits task details.
+3. User submits task details.
 
-System validates the inputs.
+4. System validates the inputs.
 
-System creates and stores the new task.
+5. System creates and stores the new task.
 
-System records an activity entry (“Task created”).
+6. System records an activity entry (“Task created”).
 
-System returns the new taskId to the user.
+7. System returns the new taskId to the user.
 
-Extensions (Failure case included)
+* Extensions (Failure case included)
 
 4a. Missing title OR invalid priority
 
-System rejects the request.
+1. System rejects the request.
 
-System returns error(message).
+2. System returns error(message).
 
-Use case ends (Minimal Guarantee).
+3. Use case ends (Minimal Guarantee).
 
 (That structure follows the “fully dressed” idea: stakeholders/guarantees + main success + extensions.)
+
+<img width="416" height="312" alt="image" src="https://github.com/user-attachments/assets/9299cbf9-adcf-473c-a48d-bccb8c3f242b" />
+@startuml
+actor User
+participant ":System" as System
+
+User -> System : createTask(title, description, priority, dueDate)
+
+alt missing title OR priority invalid
+  System --> User : error(message)
+else valid input
+  System --> User : taskId
+end
+
+@enduml
+
 
 
 ## Identification of system operations and operation contracts
