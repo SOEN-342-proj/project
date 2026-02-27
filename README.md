@@ -123,20 +123,21 @@ Trigger: User wants to create a new task.
 **Postconditions**
 - A new Task t is created with:
   - t.title = title
-  - t.description = description (if provided)
+  - t.description = description (optional)
   - t.creationDate = now
-  - t.dueDate = dueDate (if provided)
+  - t.dueDate = dueDate (if optional)
   - t.priority = priority
   - t.status = open
 - t is stored in Tasks.
-- If projectId is provided, t is associated with Project(projectId) (and no other).
-- If tagNames provided, for each tagName:
+- When projectId is provided, t is associated with Project(projectId)
+- If tags are provided, for each tagName:
   - If Tag(tagName) does not exist, it is created and stored in Tags.
   - t is associated with Tag(tagName) (no duplicate association).
-- A new TaskActivity entry a is created with:
-  - a.timestamp = now
-  - a.description = "Task created"
-  and is associated with t.
+- A new TaskActivity list is created, named a, stores TaskActivity Entry in head. 
+  - a..head.timestamp = now
+  - a.head.taskID = t.taskID
+  - a.head.description = "Task Created"
+  - a.listCount++
 - Returns taskId identifying t.
 
 
