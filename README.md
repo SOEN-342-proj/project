@@ -86,3 +86,33 @@ Trigger: User wants to create a new task.
 
 
 ## Identification of system operations and operation contracts
+
+
+#System Operations
+
+Task:
+-createTask(title, description?, priority, dueDate?, projectId?, tagNames[]) : int taskId
+-updateTask(taskId, title?, description, priority?, dueDate?): void
+-setStatus(taskId,status): void
+-assignToProject(taskID,projectID): boolean success/fail
+-removeFromProject(TaskID,ProjectID) : boolean success/fail
+
+Subtasks and Tags:
+-addSubtask(taskID,title) : int subTaskID
+-updateSubtask(taskId, subtaskId, title?): void
+-setSubtaskCompleted(taskId, subtaskId, isCompleted) : void
+-addTag(taskID,tagName) : void
+-removeTag(taskID,tagName) : void
+
+Projects:
+-createProject(name, description?): int projectId
+-updateProject(projectId, name?, description?): void
+
+Searching:
+listTasks(filter?): Task[]
+listByTags(tagName): Task[]
+getTaskActivity(taskID): TaskActivity[]
+
+#Operation Contracts
+
+
