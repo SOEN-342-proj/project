@@ -154,6 +154,37 @@ Trigger: User wants to create a new task.
   -a.timestamp = now
   - a.taskID = t.taskID
   - a.description = "Task Updated"
+    
+#### setStatus(taskId, status) : void
 
----
+**Preconditions**
+- Task(taskId) exists.
+- status ∈ {open, completed, cancelled}.
+
+**Postconditions**
+- For Task t = Task(taskId): t.status = status.
+- A new TaskActivity entry is created and added to tail of ActivityList
+  -a.timestamp = now
+  - a.taskID = t.taskID
+  - a.description = "Status Updated to: " + status
+- t remains stored in the system regardless of status.
+
+  
+#### assignToProject(taskId, projectId) : boolean success
+
+**Preconditions**
+- Task(taskId) exists.
+- Project(projectId) exists.
+
+**Postconditions (success = true)**
+- For Task t = Task(taskId) and Project p = Project(projectId):
+  - t becomes associated with p.
+  - If t was previously associated with another project pOld, that association is removed.
+- A new TaskActivity entry is created and added to tail of ActivityList
+  -a.timestamp = now
+  - a.taskID = t.taskID
+  - a.description = "Task Assigned to Project: " + Project
+
+**Postconditions (success = false)**
+- No state changes occur.
 
