@@ -134,10 +134,26 @@ Trigger: User wants to create a new task.
   - If Tag(tagName) does not exist, it is created and stored in Tags.
   - t is associated with Tag(tagName) (no duplicate association).
 - A new TaskActivity list is created, named a, stores TaskActivity Entry in head. 
-  - a..head.timestamp = now
-  - a.head.taskID = t.taskID
-  - a.head.description = "Task Created"
-  - a.listCount++
+  - a.timestamp = now
+  - a.taskID = t.taskID
+  - a.description = "Task Created"
 - Returns taskId identifying t.
 
+#### updateTask(taskId, title?, description?, priority?, dueDate?) : void
+
+**Preconditions**
+- Task(taskId) exists.
+
+**Postconditions**
+- For Task t = Task(taskId):
+  - If title provided, t.title updated.
+  - If description provided, t.description updated.
+  - If priority provided, t.priority updated.
+  - If dueDate provided, t.dueDate updated.
+- A new TaskActivity Entry is created and added to tail of ActivityList
+  -a.timestamp = now
+  - a.taskID = t.taskID
+  - a.description = "Task Updated"
+
+---
 
