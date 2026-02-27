@@ -188,3 +188,94 @@ Trigger: User wants to create a new task.
 **Postconditions (success = false)**
 - No state changes occur.
 
+#### removeFromProject(taskId) : boolean success
+
+**Preconditions**
+- Task(taskId) exists.
+
+**Postconditions (success = true)**
+- For Task t = Task(taskId):
+  - If t is associated with a project, that association is removed.
+- A new TaskActivity entry is created and added to tail of ActivityList
+  -a.timestamp = now
+  - a.taskID = t.taskID
+  - a.description = "Task Removed from Project: " + Project
+
+**Postconditions (success = false)**
+- No state changes occur.
+
+#### addSubtask(taskId, title) : int subtaskId
+
+**Preconditions**
+- Task(taskId) exists.
+- title is not empty.
+
+**Postconditions**
+- For Task t = Task(taskId):
+  - A new Subtask s is created with s.title = title and s.completionStatus = notCompleted.
+  - s is associated with t (subtasks do not exist independently).
+- Returns subtaskId identifying s.
+- A new TaskActivity entry is created and added to tail of ActivityList
+  -a.timestamp = now
+  - a.taskID = t.taskID
+  - a.description = "SubTask Added"
+ 
+#### updateSubtask(taskId, subtaskId, title?) : void
+
+**Preconditions**
+- Task(taskId) exists.
+- Subtask(subtaskId) exists and belongs to Task(taskId).
+
+**Postconditions**
+- If title provided, the referenced Subtask title is updated.
+- A new TaskActivity entry is created and added to tail of ActivityList
+  -a.timestamp = now
+  - a.taskID = t.taskID
+  - a.description = "SubTask Updated"
+ 
+ #### setSubtaskCompleted(taskId, subtaskId, isCompleted) : void
+
+**Preconditions**
+- Task(taskId) exists.
+- Subtask(subtaskId) exists and belongs to Task(taskId).
+
+**Postconditions**
+- The referenced Subtask completionStatus is set to isCompleted.
+- The parent Task status is NOT automatically changed.
+- A new TaskActivity entry is created and added to tail of ActivityList
+  -a.timestamp = now
+  - a.taskID = t.taskID
+  - a.description = "SubTask Status Completed"
+
+  #### addTag(taskId, tagName) : void
+
+**Preconditions**
+- Task(taskId) exists.
+- tagName is not empty.
+
+**Postconditions**
+- If Tag(tagName) does not exist, it is created and stored in Tags.
+- The association between Task(taskId) and Tag(tagName) exists after the operation (no duplicates).
+- A new TaskActivity entry is created and added to tail of ActivityList
+  -a.timestamp = now
+  - a.taskID = t.taskID
+  - a.description = "Tag " + TagName + "Added"
+ 
+
+#### removeTag(taskId, tagName) : void
+
+**Preconditions**
+- Task(taskId) exists.
+- Tag(tagName) exists.
+- Task(taskId) is associated with Tag(tagName).
+
+**Postconditions**
+- The association between Task(taskId) and Tag(tagName) is removed.
+- Tag(tagName) remains stored in the system.
+- A new TaskActivity entry is created and added to tail of ActivityList
+  -a.timestamp = now
+  - a.taskID = t.taskID
+  - a.description = "Tag " + TagName + "Removed"
+ 
+
+
