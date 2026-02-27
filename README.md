@@ -81,19 +81,7 @@ Trigger: User wants to create a new task.
 (That structure follows the “fully dressed” idea: stakeholders/guarantees + main success + extensions.)
 
 <img width="416" height="312" alt="image" src="https://github.com/user-attachments/assets/9299cbf9-adcf-473c-a48d-bccb8c3f242b" />
-@startuml
-actor User
-participant ":System" as System
 
-User -> System : createTask(title, description, priority, dueDate)
-
-alt missing title OR priority invalid
-  System --> User : error(message)
-else valid input
-  System --> User : taskId
-end
-
-@enduml
 
 
 
