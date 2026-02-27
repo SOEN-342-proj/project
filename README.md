@@ -27,8 +27,7 @@
 <img width="420" height="396" alt="UC9_view_activity_history" src="https://github.com/user-attachments/assets/5e610dcf-43d9-469b-be2d-5f25812ebae0" />
 
 
-## One fully-dressed scenario for a critical use-case, with at least one success and one
-failure case (equivalent system sequence diagram to be provided in the above)
+## One fully-dressed scenario for a critical use-case, with at least one success and one failure case (equivalent system sequence diagram to be provided in the above)
 
 
 ## Identification of system operations and operation contracts
