@@ -82,9 +82,6 @@ Trigger: User wants to create a new task.
 
 <img width="416" height="312" alt="image" src="https://github.com/user-attachments/assets/9299cbf9-adcf-473c-a48d-bccb8c3f242b" />
 
-
-
-
 ## Identification of system operations and operation contracts
 
 ### System Operations
