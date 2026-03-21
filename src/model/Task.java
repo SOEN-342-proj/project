@@ -18,6 +18,8 @@ public class Task {
     private LocalDate creationDate;
     private List<Subtask> subtasks;
     private List<Tag> tags;
+    private Project project;
+    private Collaborator collaborator;
 
     public Task(int taskId, String title, String description, Priority priority, LocalDate dueDate) {
         this.taskId = taskId;
@@ -63,9 +65,17 @@ public class Task {
     public void addTag(Tag t) { tags.add(t); }
     public void removeTag(Tag t) { tags.remove(t); }
 
+    public Project getProject() { return project; }
+    public void assignToProject(Project p) { this.project = p; }
+    public void removeFromProject() { this.project = null; }
+
+    public Collaborator getCollaborator() { return collaborator; }
+    public void setCollaborator(Collaborator c) { this.collaborator = c; }
+
     @Override
     public String toString() {
-        return String.format("[%d] %s | %s | %s | Due: %s",
-                taskId, title, priority, status, dueDate);
+        return String.format("[%d] %s | %s | %s | Due: %s | Project: %s",
+                taskId, title, priority, status, dueDate,
+                project != null ? project.getName() : "-");
     }
 }
