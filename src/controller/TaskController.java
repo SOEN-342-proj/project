@@ -15,6 +15,8 @@ public class TaskController {
     private final List<TaskActivity> activityLog = new ArrayList<>();
     private int nextSubtaskId = 1;
     private int nextActivityId = 1;
+    private int nextPatternId = 1;
+    private int nextOccurrenceId = 1;
 
     public TaskController(TaskRepository taskRepo, CollaboratorRepository collaboratorRepo) {
         this.taskRepo = taskRepo;
@@ -42,7 +44,17 @@ public class TaskController {
     public void setStatus(int taskId, model.enums.Status status) {
         Task task = taskRepo.findById(taskId);
         if (task == null) { System.out.println("Task not found: " + taskId); return; }
+        model.enums.Status prev = task.getStatus();
         task.setStatus(status);
+        if (prev != model.enums.Status.OPEN && status == model.enums.Status.OPEN && task.getCollaborator() != null) {
+            Collaborator c = task.getCollaborator();
+            c.incrementOpenTaskCount();
+            if (!c.canAcceptTask()) {
+                System.out.println("Warning: " + c.getName() + " is now overloaded.");
+            }
+        } else if (prev == model.enums.Status.OPEN && status != model.enums.Status.OPEN && task.getCollaborator() != null) {
+            task.getCollaborator().decrementOpenTaskCount();
+        }
         log(taskId, "Status changed to " + status);
     }
 
@@ -84,6 +96,41 @@ public class TaskController {
     public Task getTask(int taskId) { return taskRepo.findById(taskId); }
 
     public TaskRepository getTaskRepo() { return taskRepo; }
+
+    public int createRecurringTask(String title, String description, model.enums.Priority priority,
+                                   model.enums.RecurrenceType type, LocalDate startDate, LocalDate endDate,
+                                   int interval, java.util.Set<java.time.DayOfWeek> weekdays, int dayOfMonth) {
+        int taskId = createTask(title, description, priority, startDate);
+        Task task = taskRepo.findById(taskId);
+        RecurrencePattern rp = new RecurrencePattern(nextPatternId++, type, startDate, endDate, interval);
+        if (weekdays != null) rp.setWeekdays(weekdays);
+        rp.setDayOfMonth(dayOfMonth);
+        task.setRecurrencePattern(rp);
+        java.util.List<LocalDate> dates = rp.computeDueDates();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (LocalDate d : dates) {
+            String key = title + "|" + d;
+            if (seen.add(key)) task.addOccurrence(new TaskOccurrence(nextOccurrenceId++, taskId, d));
+        }
+        log(taskId, "Recurring task created with " + task.getOccurrences().size() + " occurrences");
+        return taskId;
+    }
+
+    public boolean assignCollaborator(int taskId, int collaboratorId) {
+        Task task = taskRepo.findById(taskId);
+        if (task == null) return false;
+        Collaborator c = collaboratorRepo.findById(collaboratorId);
+        if (c == null) return false;
+        if (!c.canAcceptTask()) {
+            System.out.println("Cannot assign: " + c.getName() + " has reached the limit (" + c.getOpenTaskLimit() + ").");
+            return false;
+        }
+        addSubtask(taskId, "Collaborated by: " + c.getName());
+        task.setCollaborator(c);
+        c.incrementOpenTaskCount();
+        log(taskId, "Collaborator assigned: " + c.getName());
+        return true;
+    }
 
     private void log(int taskId, String description) {
         activityLog.add(new TaskActivity(nextActivityId++, taskId, description));
