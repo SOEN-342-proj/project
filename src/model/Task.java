@@ -20,6 +20,8 @@ public class Task {
     private List<Tag> tags;
     private Project project;
     private Collaborator collaborator;
+    private RecurrencePattern recurrencePattern;
+    private List<TaskOccurrence> occurrences;
 
     public Task(int taskId, String title, String description, Priority priority, LocalDate dueDate) {
         this.taskId = taskId;
@@ -31,6 +33,7 @@ public class Task {
         this.creationDate = LocalDate.now();
         this.subtasks = new ArrayList<>();
         this.tags = new ArrayList<>();
+        this.occurrences = new ArrayList<>();
     }
 
     public int getTaskId() { return taskId; }
@@ -51,6 +54,12 @@ public class Task {
     public void setStatus(Status status) { this.status = status; }
 
     public LocalDate getCreationDate() { return creationDate; }
+
+    public RecurrencePattern getRecurrencePattern() { return recurrencePattern; }
+    public void setRecurrencePattern(RecurrencePattern rp) { this.recurrencePattern = rp; }
+
+    public List<TaskOccurrence> getOccurrences() { return occurrences; }
+    public void addOccurrence(TaskOccurrence o) { occurrences.add(o); }
 
     public List<Subtask> getSubtasks() { return subtasks; }
     public void addSubtask(Subtask s) { subtasks.add(s); }
