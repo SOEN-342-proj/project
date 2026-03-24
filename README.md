@@ -311,3 +311,5 @@ Trigger: User wants to create a new task.
 **Postconditions**
 - Returns the activity history entries for the task in chronological order.
 - No state changes occur.
+  NOTE:
+  For iteration 2 you will find it on the artefacts file.
