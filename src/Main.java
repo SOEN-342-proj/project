@@ -1,3 +1,4 @@
+import controller.ICalExportController;
 import controller.ProjectController;
 import controller.TaskController;
 import model.*;
@@ -21,6 +22,7 @@ public class Main {
 
     private final TaskController taskController;
     private final ProjectController projectController;
+    private final ICalExportController icalController;
     private final ImportHandler importHandler;
     private final DatabaseManager db;
     private final Scanner scanner = new Scanner(System.in);
@@ -35,6 +37,7 @@ public class Main {
         taskController = new TaskController(taskRepo, collaboratorRepo);
         projectController = new ProjectController(projectRepo, collaboratorRepo);
         importHandler = new ImportHandler(taskController, projectController);
+        icalController = new ICalExportController(taskRepo, projectController.getProjectRepo());
     }
 
     public static void main(String[] args) {
@@ -59,6 +62,7 @@ public class Main {
                 case "7": handleOverloadedCollaborators();  break;
                 case "8": handleAddCollaboratorToProject(); break;
                 case "9": handleAssignCollaboratorToTask(); break;
+                case "10": handleICalExport(); break;
                 case "0": running = false;                  break;
                 default:  System.out.println("Invalid option.");
             }
@@ -78,6 +82,7 @@ public class Main {
         System.out.println(" 7. View Overloaded Collaborators");
         System.out.println(" 8. Add Collaborator to Project");
         System.out.println(" 9. Assign Collaborator to Task");
+        System.out.println(" 10. Export to iCal (.ics)");
         System.out.println(" 0. Exit");
         System.out.println("------------------------------------");
     }
@@ -282,6 +287,38 @@ public class Main {
 
         boolean success = taskController.assignCollaborator(taskId, collabId);
         if (success) System.out.println("Collaborator assigned successfully.");
+    }
+
+    private void handleICalExport() {
+        System.out.println("\n-- Export to iCal --");
+        System.out.println("  1. Single task");
+        System.out.println("  2. All tasks in a project");
+        System.out.println("  3. Filtered tasks");
+        String choice = prompt("Choice");
+        String filePath = prompt("Output file path [default: export.ics]");
+        if (filePath.trim().isEmpty()) filePath = "export.ics";
+
+        switch (choice.trim()) {
+            case "1":
+                String tid = prompt("Task ID");
+                try { icalController.exportTask(Integer.parseInt(tid.trim()), filePath); }
+                catch (NumberFormatException e) { System.out.println("Invalid ID."); }
+                break;
+            case "2":
+                String proj = prompt("Project name");
+                icalController.exportProject(proj, filePath);
+                break;
+            case "3":
+                SearchCriteria criteria = new SearchCriteria();
+                String name = prompt("Task name contains (blank to skip)");
+                if (!name.trim().isEmpty()) criteria.setNameMatch(name);
+                String status = prompt("Status (OPEN/COMPLETED/CANCELLED) (blank to skip)");
+                if (!status.trim().isEmpty()) criteria.setStatus(Status.fromString(status));
+                icalController.exportFiltered(criteria, filePath);
+                break;
+            default:
+                System.out.println("Invalid choice.");
+        }
     }
 
     private void printTaskDetails(Task t) {
