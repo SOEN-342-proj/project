@@ -1,3 +1,7 @@
 .idea/
 out/
 *.iml
+ target/
+ *.db
+ *.csv
+ tasks_export*.csv

@@ -33,6 +33,7 @@ public class Collaborator {
     public int getOpenTaskCount() { return openTaskCount; }
     public void incrementOpenTaskCount() { openTaskCount++; }
     public void decrementOpenTaskCount() { if (openTaskCount > 0) openTaskCount--; }
+    public void setOpenTaskCount(int count) { this.openTaskCount = count; }
 
     public boolean canAcceptTask() { return openTaskCount < openTaskLimit; }
 

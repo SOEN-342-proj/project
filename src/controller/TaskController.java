@@ -5,18 +5,12 @@ import repository.CollaboratorRepository;
 import repository.TaskRepository;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 /** Handles task-related business logic. */
 public class TaskController {
     private final TaskRepository taskRepo;
     private final CollaboratorRepository collaboratorRepo;
-    private final List<TaskActivity> activityLog = new ArrayList<>();
-    private int nextSubtaskId = 1;
-    private int nextActivityId = 1;
-    private int nextPatternId = 1;
-    private int nextOccurrenceId = 1;
 
     public TaskController(TaskRepository taskRepo, CollaboratorRepository collaboratorRepo) {
         this.taskRepo = taskRepo;
@@ -38,6 +32,7 @@ public class TaskController {
         if (description != null) task.setDescription(description);
         if (priority != null) task.setPriority(priority);
         if (dueDate != null) task.setDueDate(dueDate);
+        taskRepo.save(task);
         log(taskId, "Task updated");
     }
 
@@ -46,15 +41,21 @@ public class TaskController {
         if (task == null) { System.out.println("Task not found: " + taskId); return; }
         model.enums.Status prev = task.getStatus();
         task.setStatus(status);
-        if (prev != model.enums.Status.OPEN && status == model.enums.Status.OPEN && task.getCollaborator() != null) {
+
+        if (task.getCollaborator() != null) {
             Collaborator c = task.getCollaborator();
-            c.incrementOpenTaskCount();
-            if (!c.canAcceptTask()) {
-                System.out.println("Warning: " + c.getName() + " is now overloaded.");
+            if (prev != model.enums.Status.OPEN && status == model.enums.Status.OPEN) {
+                c.incrementOpenTaskCount();
+                if (!c.canAcceptTask()) {
+					System.out.println("Warning: " + c.getName() + " is now overloaded.");
+				}
+            } else if (prev == model.enums.Status.OPEN && status != model.enums.Status.OPEN) {
+                c.decrementOpenTaskCount();
             }
-        } else if (prev == model.enums.Status.OPEN && status != model.enums.Status.OPEN && task.getCollaborator() != null) {
-            task.getCollaborator().decrementOpenTaskCount();
+            collaboratorRepo.save(c);
         }
+
+        taskRepo.save(task);
         log(taskId, "Status changed to " + status);
     }
 
@@ -62,6 +63,7 @@ public class TaskController {
         Task task = taskRepo.findById(taskId);
         if (task == null) return false;
         task.assignToProject(project);
+        taskRepo.save(task);
         log(taskId, "Assigned to project: " + project.getName());
         return true;
     }
@@ -69,8 +71,9 @@ public class TaskController {
     public int addSubtask(int taskId, String title) {
         Task task = taskRepo.findById(taskId);
         if (task == null) return -1;
-        int sid = nextSubtaskId++;
+        int sid = taskRepo.nextSubtaskId();
         task.addSubtask(new Subtask(sid, title));
+        taskRepo.save(task);
         log(taskId, "Subtask added: " + title);
         return sid;
     }
@@ -79,6 +82,7 @@ public class TaskController {
         Task task = taskRepo.findById(taskId);
         if (task == null) return;
         task.addTag(new Tag(tagName));
+        taskRepo.save(task);
     }
 
     public List<Task> listTasks(SearchCriteria filter) {
@@ -86,11 +90,7 @@ public class TaskController {
     }
 
     public List<TaskActivity> getTaskActivity(int taskId) {
-        List<TaskActivity> result = new ArrayList<>();
-        for (TaskActivity a : activityLog) {
-            if (a.getTaskId() == taskId) result.add(a);
-        }
-        return result;
+        return taskRepo.findActivitiesByTaskId(taskId);
     }
 
     public Task getTask(int taskId) { return taskRepo.findById(taskId); }
@@ -102,16 +102,20 @@ public class TaskController {
                                    int interval, java.util.Set<java.time.DayOfWeek> weekdays, int dayOfMonth) {
         int taskId = createTask(title, description, priority, startDate);
         Task task = taskRepo.findById(taskId);
-        RecurrencePattern rp = new RecurrencePattern(nextPatternId++, type, startDate, endDate, interval);
+
+        RecurrencePattern rp = new RecurrencePattern(taskRepo.nextPatternId(), type, startDate, endDate, interval);
         if (weekdays != null) rp.setWeekdays(weekdays);
         rp.setDayOfMonth(dayOfMonth);
         task.setRecurrencePattern(rp);
+
         java.util.List<LocalDate> dates = rp.computeDueDates();
         java.util.Set<String> seen = new java.util.HashSet<>();
         for (LocalDate d : dates) {
             String key = title + "|" + d;
-            if (seen.add(key)) task.addOccurrence(new TaskOccurrence(nextOccurrenceId++, taskId, d));
+            if (seen.add(key)) task.addOccurrence(new TaskOccurrence(taskRepo.nextOccurrenceId(), taskId, d));
         }
+
+        taskRepo.save(task);
         log(taskId, "Recurring task created with " + task.getOccurrences().size() + " occurrences");
         return taskId;
     }
@@ -128,11 +132,14 @@ public class TaskController {
         addSubtask(taskId, "Collaborated by: " + c.getName());
         task.setCollaborator(c);
         c.incrementOpenTaskCount();
+        collaboratorRepo.save(c);
+        taskRepo.save(task);
         log(taskId, "Collaborator assigned: " + c.getName());
         return true;
     }
 
     private void log(int taskId, String description) {
-        activityLog.add(new TaskActivity(nextActivityId++, taskId, description));
+        TaskActivity a = new TaskActivity(taskRepo.nextActivityId(), taskId, description);
+        taskRepo.saveActivity(a);
     }
 }

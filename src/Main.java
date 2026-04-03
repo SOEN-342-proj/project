@@ -5,6 +5,7 @@ import model.enums.*;
 import repository.CollaboratorRepository;
 import repository.ProjectRepository;
 import repository.TaskRepository;
+import util.DatabaseManager;
 import util.ImportHandler;
 
 import java.io.File;
@@ -16,18 +17,21 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Main {
-
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private final TaskController taskController;
     private final ProjectController projectController;
     private final ImportHandler importHandler;
+    private final DatabaseManager db;
     private final Scanner scanner = new Scanner(System.in);
 
     public Main() {
-        TaskRepository taskRepo = new TaskRepository();
-        ProjectRepository projectRepo = new ProjectRepository();
-        CollaboratorRepository collaboratorRepo = new CollaboratorRepository();
+        // creates taskmanager.db + schema
+        db = new DatabaseManager();
+        java.sql.Connection conn = db.getConnection();
+        TaskRepository taskRepo = new TaskRepository(conn);
+        ProjectRepository projectRepo = new ProjectRepository(conn);
+        CollaboratorRepository collaboratorRepo = new CollaboratorRepository(conn);
         taskController = new TaskController(taskRepo, collaboratorRepo);
         projectController = new ProjectController(projectRepo, collaboratorRepo);
         importHandler = new ImportHandler(taskController, projectController);
@@ -57,6 +61,7 @@ public class Main {
             }
         }
         System.out.println("Goodbye.");
+        db.close();   // flush and close SQLite connection
     }
 
     private void printMainMenu() {
@@ -206,7 +211,6 @@ public class Main {
             int id = Integer.parseInt(input.trim());
             t = taskController.getTask(id);
         } catch (NumberFormatException e) {
-            // try name search
             SearchCriteria c = new SearchCriteria();
             c.setNameMatch(input);
             List<Task> results = taskController.listTasks(c);
@@ -214,9 +218,7 @@ public class Main {
                 System.out.println("No task found matching: " + input);
                 return;
             }
-            if (results.size() > 1) {
-                System.out.println("Multiple matches — showing first result.");
-            }
+            if (results.size() > 1) System.out.println("Multiple matches — showing first result.");
             t = results.get(0);
         }
 
@@ -238,7 +240,8 @@ public class Main {
         if (!t.getSubtasks().isEmpty()) {
             System.out.println("  Subtasks:");
             for (Subtask s : t.getSubtasks()) {
-                System.out.println("    [" + s.getSubtaskId() + "] " + s.getTitle() + (s.isCompleted() ? " (done)" : ""));
+                System.out.println("    [" + s.getSubtaskId() + "] " + s.getTitle()
+                        + (s.isCompleted() ? " (done)" : ""));
             }
         }
 
@@ -253,7 +256,8 @@ public class Main {
 
         if (t.getRecurrencePattern() != null) {
             RecurrencePattern rp = t.getRecurrencePattern();
-            System.out.println("  Recurrence:  " + rp.getType() + " from " + rp.getStartDate() + " to " + rp.getEndDate());
+            System.out.println("  Recurrence:  " + rp.getType()
+                    + " from " + rp.getStartDate() + " to " + rp.getEndDate());
             System.out.println("  Occurrences: " + t.getOccurrences().size());
         }
 
