@@ -1,7 +1,8 @@
 .idea/
 out/
 *.iml
- target/
- *.db
- *.csv
- tasks_export*.csv
+ /*.db
+ /*.csv
+ /tasks_export*.csv
+/target/classes
+taskmanager.db
