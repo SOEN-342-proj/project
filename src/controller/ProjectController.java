@@ -4,6 +4,7 @@ import model.Collaborator;
 import model.Project;
 import repository.CollaboratorRepository;
 import repository.ProjectRepository;
+import java.util.List;
 
 /** Handles project-related business logic. */
 public class ProjectController {
@@ -31,6 +32,10 @@ public class ProjectController {
         if (project == null) { System.out.println("Project not found: " + projectId); return; }
         if (name != null && !name.trim().isEmpty()) project.setName(name);
         if (description != null) project.setDescription(description);
+    }
+
+    public List<Collaborator> getOverloadedCollaborators() {
+        return collaboratorRepo.getOverloaded();
     }
 
     public int addCollaboratorToProject(int projectId, String name, model.enums.Category category) {

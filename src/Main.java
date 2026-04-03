@@ -50,13 +50,16 @@ public class Main {
             printMainMenu();
             String choice = prompt("Choice").trim();
             switch (choice) {
-                case "1": handleSearchTasks();   break;
-                case "2": handleCreateTask();    break;
-                case "3": handleCreateProject(); break;
-                case "4": handleImportCSV();     break;
-                case "5": handleExportCSV();     break;
-                case "6": handleViewTask();      break;
-                case "0": running = false;       break;
+                case "1": handleSearchTasks();              break;
+                case "2": handleCreateTask();               break;
+                case "3": handleCreateProject();            break;
+                case "4": handleImportCSV();                break;
+                case "5": handleExportCSV();                break;
+                case "6": handleViewTask();                 break;
+                case "7": handleOverloadedCollaborators();  break;
+                case "8": handleAddCollaboratorToProject(); break;
+                case "9": handleAssignCollaboratorToTask(); break;
+                case "0": running = false;                  break;
                 default:  System.out.println("Invalid option.");
             }
         }
@@ -72,6 +75,9 @@ public class Main {
         System.out.println(" 4. Import Tasks from CSV");
         System.out.println(" 5. Export Tasks to CSV");
         System.out.println(" 6. View Task Details");
+        System.out.println(" 7. View Overloaded Collaborators");
+        System.out.println(" 8. Add Collaborator to Project");
+        System.out.println(" 9. Assign Collaborator to Task");
         System.out.println(" 0. Exit");
         System.out.println("------------------------------------");
     }
@@ -117,17 +123,18 @@ public class Main {
             System.out.println("  (no tasks found)");
             return;
         }
-        System.out.printf("%-5s %-30s %-12s %-11s %-12s %-20s%n",
-                "ID", "Title", "Priority", "Status", "Due Date", "Project");
-        System.out.println("-".repeat(95));
+        System.out.printf("%-5s %-30s %-12s %-11s %-12s %-20s %-20s%n",
+                "ID", "Title", "Priority", "Status", "Due Date", "Project", "Collaborator");
+        System.out.println("-".repeat(115));
         for (Task t : tasks) {
-            System.out.printf("%-5d %-30s %-12s %-11s %-12s %-20s%n",
+            System.out.printf("%-5d %-30s %-12s %-11s %-12s %-20s %-20s%n",
                     t.getTaskId(),
                     truncate(t.getTitle(), 29),
                     t.getPriority(),
                     t.getStatus(),
                     t.getDueDate() != null ? t.getDueDate().format(DATE_FMT) : "-",
-                    t.getProject() != null ? truncate(t.getProject().getName(), 19) : "-");
+                    t.getProject() != null ? truncate(t.getProject().getName(), 19) : "-",
+                    t.getCollaborator() != null ? truncate(t.getCollaborator().getName(), 19) : "-");
         }
     }
 
@@ -224,6 +231,57 @@ public class Main {
 
         if (t == null) { System.out.println("Task not found."); return; }
         printTaskDetails(t);
+    }
+
+    private void handleOverloadedCollaborators() {
+        System.out.println("\n-- Overloaded Collaborators --");
+        List<Collaborator> overloaded = projectController.getOverloadedCollaborators();
+        if (overloaded.isEmpty()) {
+            System.out.println("  No overloaded collaborators.");
+            return;
+        }
+        System.out.printf("%-5s %-20s %-14s %-6s %-5s%n",
+                "ID", "Name", "Category", "Limit", "Count");
+        System.out.println("-".repeat(55));
+        for (Collaborator c : overloaded) {
+            System.out.printf("%-5d %-20s %-14s %-6d %-5d%n",
+                    c.getCollaboratorId(), c.getName(),
+                    c.getCategory(), c.getOpenTaskLimit(), c.getOpenTaskCount());
+        }
+    }
+
+    private void handleAddCollaboratorToProject() {
+        System.out.println("\n-- Add Collaborator to Project --");
+        String projName = prompt("Project name");
+        if (projName.trim().isEmpty()) return;
+        Project project = projectController.getProjectByName(projName);
+        if (project == null) { System.out.println("Project not found."); return; }
+
+        String name = prompt("Collaborator name");
+        if (name.trim().isEmpty()) return;
+        String catStr = prompt("Category (JUNIOR/INTERMEDIATE/SENIOR) [default: JUNIOR]");
+        Category category = Category.fromString(catStr.trim().isEmpty() ? "JUNIOR" : catStr);
+
+        int cid = projectController.addCollaboratorToProject(project.getProjectId(), name, category);
+        if (cid != -1) System.out.println("Collaborator added with ID: " + cid);
+    }
+
+    private void handleAssignCollaboratorToTask() {
+        System.out.println("\n-- Assign Collaborator to Task --");
+        String taskInput = prompt("Task ID");
+        if (taskInput.trim().isEmpty()) return;
+        int taskId;
+        try { taskId = Integer.parseInt(taskInput.trim()); }
+        catch (NumberFormatException e) { System.out.println("Invalid task ID."); return; }
+
+        String collabInput = prompt("Collaborator ID");
+        if (collabInput.trim().isEmpty()) return;
+        int collabId;
+        try { collabId = Integer.parseInt(collabInput.trim()); }
+        catch (NumberFormatException e) { System.out.println("Invalid collaborator ID."); return; }
+
+        boolean success = taskController.assignCollaborator(taskId, collabId);
+        if (success) System.out.println("Collaborator assigned successfully.");
     }
 
     private void printTaskDetails(Task t) {

@@ -75,6 +75,15 @@ public class CollaboratorRepository {
         return out;
     }
 
+    public List<Collaborator> getOverloaded() {
+        List<Collaborator> out = new ArrayList<>();
+        try (Statement s = conn.createStatement();
+             ResultSet rs = s.executeQuery("SELECT * FROM collaborators WHERE open_task_count > open_task_limit ORDER BY collaborator_id")) {
+            while (rs.next()) out.add(rowToCollaborator(rs));
+        } catch (SQLException e) { throw new RuntimeException(e); }
+        return out;
+    }
+
     private Collaborator rowToCollaborator(ResultSet rs) throws SQLException {
         Category cat = Category.valueOf(rs.getString("category"));
         Collaborator c = new Collaborator(rs.getInt("collaborator_id"), rs.getString("name"), cat);
