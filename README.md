@@ -15,8 +15,11 @@
 - [Iteration 4](https://github.com/SOEN-342-proj/project/wiki/Iteration-4) —  Final Delivery, State Machine & Demo Video
 
 ## Demo Video
-
-[![SOEN 342 Task Manager Demo](https://img.youtube.com/vi/RMYXxyWHsCI/0.jpg)](https://youtu.be/RMYXxyWHsCI)
+<a href="https://youtu.be/RMYXxyWHsCI">
+  <img src="https://github.com/user-attachments/assets/b75882e3-29d6-46a0-98f3-a8bcc570e978"
+       alt="SOEN 342 Task Manager Demo Video"
+       width="500">
+</a>
 
 ## How to Run the Proof of Concept
 
