@@ -12,7 +12,7 @@
 - [Iteration 1](https://github.com/SOEN-342-proj/project/wiki/Iteration-1) — System Modelling and Requirements Specification
 - [Iteration 2](https://github.com/SOEN-342-proj/project/wiki/Iteration-2) — Design, Deployment and Proof of Concept
 - [Iteration 3](https://github.com/SOEN-342-proj/project/wiki/Iteration-3) —  Final Deployment and Features
-
+- [Iteration 4](https://github.com/SOEN-342-proj/project/wiki/Iteration-4) —  Final Delivery, State Machine & Demo Video
 ## How to Run the Proof of Concept
 
 ### Requirements
