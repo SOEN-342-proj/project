@@ -2,11 +2,11 @@
 
 ## Team Members
 
-| Name | Student ID |
-|------|------------|
-| Malcolm Arcand Laliberté | 26334792 |
-| Rafael Lenz | 40259696 |
-| Jawad AlAqlani | 40272579 |
+| Name | Student ID | GitHub username |
+|------|------------|-----------------|
+| Malcolm Arcand Laliberté | 26334792 | [@Shredsauce](https://github.com/Shredsauce) |
+| Rafael Lenz | 40259696 | [@RafaelL0311](https://github.com/RafaelL0311) |
+| Jawad AlAqlani | 40272579 | [@JawadAl-Aqlani](https://github.com/JawadAl-Aqlani) |
 
 ## Iterations
 - [Iteration 1](https://github.com/SOEN-342-proj/project/wiki/Iteration-1) — System Modelling and Requirements Specification
