@@ -39,12 +39,12 @@ public class ICalGateway {
             // Description: task description + status + priority + project + subtask summary
             StringBuilder desc = new StringBuilder();
             if (task.getDescription() != null && !task.getDescription().isEmpty()) {
-                desc.append(task.getDescription()).append("\\n");
+                desc.append(task.getDescription()).append("\n");
             }
-            desc.append("Status: ").append(task.getStatus()).append("\\n");
-            desc.append("Priority: ").append(task.getPriority()).append("\\n");
+            desc.append("Status: ").append(task.getStatus()).append("\n");
+            desc.append("Priority: ").append(task.getPriority()).append("\n");
             if (task.getProject() != null) {
-                desc.append("Project: ").append(task.getProject().getName()).append("\\n");
+                desc.append("Project: ").append(task.getProject().getName()).append("\n");
             }
             if (!task.getSubtasks().isEmpty()) {
                 desc.append("Subtasks: ");

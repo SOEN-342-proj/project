@@ -1,7 +1,7 @@
 package model.enums;
 
 public enum RecurrenceType {
-    DAILY, WEEKLY, MONTHLY, CUSTOM;
+    DAILY, WEEKLY, MONTHLY;
 
     public static RecurrenceType fromString(String s) {
         if (s == null || s.trim().isEmpty()) return DAILY;

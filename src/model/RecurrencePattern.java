@@ -65,13 +65,8 @@ public class RecurrencePattern {
                 for (LocalDate d = startDate; !d.isAfter(endDate); d = d.plusMonths(1)) {
                     try {
                         LocalDate candidate = d.withDayOfMonth(dayOfMonth > 0 ? dayOfMonth : d.getDayOfMonth());
-                        if (!candidate.isAfter(endDate)) dates.add(candidate);
+                        if (!candidate.isBefore(startDate) && !candidate.isAfter(endDate)) dates.add(candidate);
                     } catch (Exception ignored) {}
-                }
-                break;
-            case CUSTOM:
-                for (LocalDate d = startDate; !d.isAfter(endDate); d = d.plusDays(interval > 0 ? interval : 1)) {
-                    dates.add(d);
                 }
                 break;
         }

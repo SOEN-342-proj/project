@@ -51,9 +51,22 @@ public class ProjectController {
         return collaborator.getCollaboratorId();
     }
 
+    public int createCollaborator(String name, model.enums.Category category) {
+        if (collaboratorRepo.findByName(name) != null) {
+            System.out.println("Collabo rator '" + name + "' already exists.");
+            return -1;
+        }
+        int cid = collaboratorRepo.nextId();
+        Collaborator collaborator = new Collaborator(cid, name, category);
+        collaboratorRepo.save(collaborator);
+        return cid;
+    }
+
     public Project getProject(int projectId) { return projectRepo.findById(projectId); }
 
     public Project getProjectByName(String name) { return projectRepo.findByName(name); }
+
+    public List<Project> listProjects() { return projectRepo.getAll(); }
 
     public ProjectRepository getProjectRepo() { return projectRepo; }
 }

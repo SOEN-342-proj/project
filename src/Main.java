@@ -3,12 +3,14 @@ import controller.ProjectController;
 import controller.TaskController;
 import model.*;
 import model.enums.*;
+import model.enums.Priority;
+import model.enums.Status;
+import model.Tag;
 import repository.CollaboratorRepository;
 import repository.ProjectRepository;
 import repository.TaskRepository;
 import util.DatabaseManager;
 import util.ImportHandler;
-
 import java.io.File;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -45,26 +47,44 @@ public class Main {
     }
 
     public void run() {
-        System.out.println("====================================");
-        System.out.println("       SOEN 342 Task Manager       ");
-        System.out.println("====================================");
+        System.out.println("\n[.]============================[.]");
+        System.out.println("||     SOEN 342 Task Manager    ||");
+        System.out.println("[']============================[']");
+
         boolean running = true;
+        boolean firstRun = true;
         while (running) {
+            if (!firstRun) {
+                try { while (System.in.available() > 0) System.in.read(); }
+                catch (Exception ignored) {}
+                System.out.print("\n  Press Enter to continue...");
+                scanner.nextLine();
+            }
+            firstRun = false;
             printMainMenu();
             String choice = prompt("Choice").trim();
             switch (choice) {
-                case "1": handleSearchTasks();              break;
-                case "2": handleCreateTask();               break;
-                case "3": handleCreateProject();            break;
-                case "4": handleImportCSV();                break;
-                case "5": handleExportCSV();                break;
-                case "6": handleViewTask();                 break;
-                case "7": handleOverloadedCollaborators();  break;
-                case "8": handleAddCollaboratorToProject(); break;
-                case "9": handleAssignCollaboratorToTask(); break;
-                case "10": handleICalExport(); break;
-                case "0": running = false;                  break;
-                default:  System.out.println("Invalid option.");
+                // ── Task Management ──────────────────────────────
+                case "1":  handleSearchTasks();              break;
+                case "2":  handleViewTask();                 break;
+                case "3":  handleCreateTask();               break;
+                case "4":  handleCreateRecurringTask();      break;
+                case "5":  handleUpdateTask();               break;
+                case "6":  handleManageTags();               break;
+                // ── Collaborator Management ─────────────────────
+                case "7":  handleCreateCollaborator(); break;
+                case "8":  handleAssignCollaboratorToTask(); break;
+                case "9": handleOverloadedCollaborators();   break;
+                // ── Project Management ───────────────────────────
+                case "10":  handleCreateProject();           break;
+                case "11":  handleListProjects();             break;
+                // ── Import / Export ──────────────────────────────
+                case "12": handleImportCSV();                break;
+                case "13": handleExportCSV();                break;
+                case "14": handleICalExport();               break;
+                // ─────────────────────────────────────────────────
+                case "0":  running = false;                  break;
+                default:   System.out.println("Invalid option.");
             }
         }
         System.out.println("Goodbye.");
@@ -72,20 +92,36 @@ public class Main {
     }
 
     private void printMainMenu() {
-        System.out.println("\n------------------------------------");
-        System.out.println(" 1. Search / List Tasks");
-        System.out.println(" 2. Create Task");
-        System.out.println(" 3. Create Project");
-        System.out.println(" 4. Import Tasks from CSV");
-        System.out.println(" 5. Export Tasks to CSV");
-        System.out.println(" 6. View Task Details");
-        System.out.println(" 7. View Overloaded Collaborators");
-        System.out.println(" 8. Add Collaborator to Project");
-        System.out.println(" 9. Assign Collaborator to Task");
-        System.out.println(" 10. Export to iCal (.ics)");
-        System.out.println(" 0. Exit");
+        System.out.println("\n==[ Task Management ]==");
+        System.out.println(" 1. Search Tasks");
+        System.out.println(" 2. View Task Details");
+        System.out.println(" 3. Create Task");
+        System.out.println(" 4. Create Recurring Task");
+        System.out.println(" 5. Update Task / Move Project");
+        System.out.println(" 6. Manage Task Tags");
+
+        System.out.println("\n==[ Collaborator Management ]==");
+
+        System.out.println(" 7. Create Collaborator");
+        System.out.println(" 8. Assign Collaborator To Task");
+        System.out.println(" 9. View Overloaded Collaborators");
+
+        System.out.println("\n==[ Project Management ]==");
+        System.out.println(" 10. Create Project");
+        System.out.println(" 11. List Projects");
+
+        System.out.println("\n==[ Import / Export ]==");
+        System.out.println(" 12. Import Tasks From CSV");
+        System.out.println(" 13. Export Tasks To CSV");
+        System.out.println(" 14. Export To iCal (.ics)");
+
+        System.out.println("\n 0. Exit");
         System.out.println("------------------------------------");
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  Task handlers
+    // ─────────────────────────────────────────────────────────────────────────
 
     private void handleSearchTasks() {
         System.out.println("\n-- Search Tasks --");
@@ -182,36 +218,6 @@ public class Main {
         printTaskDetails(created);
     }
 
-    private void handleCreateProject() {
-        System.out.println("\n-- Create Project --");
-        String name = prompt("Project name (required)");
-        if (name.trim().isEmpty()) { System.out.println("Name is required."); return; }
-        String desc = prompt("Description");
-        int pid = projectController.createProject(name, desc);
-        if (pid != -1) System.out.println("Project created with ID: " + pid);
-    }
-
-    private void handleImportCSV() {
-        System.out.println("\n-- Import Tasks from CSV --");
-        String path = prompt("File path (e.g. sample_tasks.csv)");
-        if (path.trim().isEmpty()) { System.out.println("No path given."); return; }
-        File file = new File(path);
-        if (!file.exists()) { System.out.println("File not found: " + path); return; }
-        ImportHandler.ImportSummary summary = importHandler.importTasksFromCSV(file);
-        System.out.println(summary);
-        if (!summary.errorMessages.isEmpty()) {
-            System.out.println("Errors:");
-            for (String e : summary.errorMessages) System.out.println("  " + e);
-        }
-    }
-
-    private void handleExportCSV() {
-        System.out.println("\n-- Export Tasks to CSV --");
-        String path = prompt("Output file path [default: tasks_export.csv]");
-        if (path.trim().isEmpty()) path = "tasks_export.csv";
-        importHandler.exportTasksToCSV(new File(path));
-    }
-
     private void handleViewTask() {
         System.out.println("\n-- View Task --");
         System.out.println("  Search by ID or name.");
@@ -238,37 +244,155 @@ public class Main {
         printTaskDetails(t);
     }
 
-    private void handleOverloadedCollaborators() {
-        System.out.println("\n-- Overloaded Collaborators --");
-        List<Collaborator> overloaded = projectController.getOverloadedCollaborators();
-        if (overloaded.isEmpty()) {
-            System.out.println("  No overloaded collaborators.");
-            return;
+    private void handleCreateRecurringTask() {
+        System.out.println("\n-- Create Recurring Task --");
+        String title = prompt("Title (required)");
+        if (title.trim().isEmpty()) { System.out.println("Title is required."); return; }
+
+        String desc    = prompt("Description");
+        String priStr  = prompt("Priority (LOW/MEDIUM/HIGH) [default: LOW]");
+        Priority priority = Priority.fromString(priStr.trim().isEmpty() ? "LOW" : priStr);
+
+        String typeStr = prompt("Recurrence type (DAILY/WEEKLY/MONTHLY)");
+        model.enums.RecurrenceType type;
+        try {
+            type = model.enums.RecurrenceType.valueOf(typeStr.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid recurrence type."); return;
         }
-        System.out.printf("%-5s %-20s %-14s %-6s %-5s%n",
-                "ID", "Name", "Category", "Limit", "Count");
-        System.out.println("-".repeat(55));
-        for (Collaborator c : overloaded) {
-            System.out.printf("%-5d %-20s %-14s %-6d %-5d%n",
-                    c.getCollaboratorId(), c.getName(),
-                    c.getCategory(), c.getOpenTaskLimit(), c.getOpenTaskCount());
+
+        LocalDate startDate = null, endDate = null;
+        String startStr = prompt("Start date (yyyy-MM-dd)");
+        String endStr   = prompt("End date (yyyy-MM-dd)");
+        startDate = parseDate(startStr);
+        endDate   = parseDate(endStr);
+        if (startDate == null || endDate == null) { System.out.println("Valid start and end dates are required."); return; }
+
+        String intervalStr = prompt("Interval (e.g. every N days/months) [default: 1]");
+        int interval = 1;
+        try { if (!intervalStr.trim().isEmpty()) interval = Integer.parseInt(intervalStr.trim()); }
+        catch (NumberFormatException e) { System.out.println("Invalid interval, defaulting to 1."); }
+
+        java.util.Set<DayOfWeek> weekdays = new java.util.HashSet<>();
+        int dayOfMonth = 0;
+
+        if (type == model.enums.RecurrenceType.WEEKLY) {
+            String dowStr = prompt("Weekdays (e.g. MONDAY,WEDNESDAY,FRIDAY) [blank for all]");
+            if (!dowStr.trim().isEmpty()) {
+                for (String d : dowStr.split(",")) {
+                    try { weekdays.add(DayOfWeek.valueOf(d.trim().toUpperCase())); }
+                    catch (IllegalArgumentException e) { System.out.println("Skipping invalid day: " + d.trim()); }
+                }
+            }
+        } else if (type == model.enums.RecurrenceType.MONTHLY) {
+            String domStr = prompt("Day of month (e.g. 15) [default: start date's day]");
+            try { if (!domStr.trim().isEmpty()) dayOfMonth = Integer.parseInt(domStr.trim()); }
+            catch (NumberFormatException e) { System.out.println("Invalid day, using start date's day."); }
+        }
+
+        int taskId = taskController.createRecurringTask(title, desc, priority, type, startDate, endDate, interval, weekdays, dayOfMonth);
+        Task t = taskController.getTask(taskId);
+        System.out.println("Recurring task created with ID: " + taskId +
+                " (" + t.getOccurrences().size() + " occurrences generated)");
+    }
+
+    private void handleUpdateTask() {
+        System.out.println("\n-- Update Task --");
+        String input = prompt("Task ID");
+        if (input.trim().isEmpty()) return;
+        int taskId;
+        try { taskId = Integer.parseInt(input.trim()); }
+        catch (NumberFormatException e) { System.out.println("Invalid task ID."); return; }
+
+        Task t = taskController.getTask(taskId);
+        if (t == null) { System.out.println("Task not found."); return; }
+
+        System.out.println("  Leave blank to keep current value.");
+        System.out.println("  Current title: "    + t.getTitle());
+        System.out.println("  Current priority: " + t.getPriority());
+        System.out.println("  Current status: "   + t.getStatus());
+        System.out.println("  Current due date: " + (t.getDueDate() != null ? t.getDueDate().format(DATE_FMT) : "-"));
+        System.out.println("  Current desc: "     + (t.getDescription() != null ? t.getDescription() : "-"));
+
+        String title   = prompt("New title");
+        String desc    = prompt("New description");
+        String priStr  = prompt("New priority (LOW/MEDIUM/HIGH)");
+        String dateStr = prompt("New due date (yyyy-MM-dd)");
+        String statStr = prompt("New status (OPEN/COMPLETED/CANCELLED)");
+
+        Priority priority = priStr.trim().isEmpty()  ? null : Priority.fromString(priStr);
+        LocalDate dueDate = dateStr.trim().isEmpty() ? null : parseDate(dateStr);
+
+        taskController.updateTask(taskId,
+                title.trim().isEmpty()  ? null : title,
+                desc.trim().isEmpty()   ? null : desc,
+                priority,
+                dueDate);
+
+        if (!statStr.trim().isEmpty()) {
+            Status status = Status.fromString(statStr);
+            taskController.setStatus(taskId, status);
+        }
+
+        String projInput = prompt("New project name (blank to keep, 'none' to remove)");
+        if (projInput.trim().equalsIgnoreCase("none")) {
+            taskController.assignToProject(taskId, null);
+            System.out.println("Task removed from project.");
+        } else if (!projInput.trim().isEmpty()) {
+            Project project = projectController.getProjectByName(projInput.trim());
+            if (project == null) {
+                System.out.println("Project not found. Creating it.");
+                String projDesc = prompt("Project description");
+                int pid = projectController.createProject(projInput.trim(), projDesc);
+                project = projectController.getProject(pid);
+            }
+            taskController.assignToProject(taskId, project);
+            System.out.println("Task moved to project: " + project.getName());
+        }
+
+        System.out.println("Task " + taskId + " updated.");
+    }
+
+    private void handleManageTags() {
+        System.out.println("\n-- Manage Task Tags --");
+        String input = prompt("Task ID");
+        if (input.trim().isEmpty()) return;
+        int taskId;
+        try { taskId = Integer.parseInt(input.trim()); }
+        catch (NumberFormatException e) { System.out.println("Invalid task ID."); return; }
+
+        Task t = taskController.getTask(taskId);
+        if (t == null) { System.out.println("Task not found."); return; }
+
+        System.out.println("  Task:         " + t.getTitle());
+        if (t.getTags().isEmpty()) {
+            System.out.println("  Current tags: (none)");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (Tag tag : t.getTags()) { if (sb.length() > 0) sb.append(", "); sb.append(tag.getTagName()); }
+            System.out.println("  Current tags: " + sb);
+        }
+
+        String tagName = prompt("Tags to add (comma separated, blank to skip)");
+        if (!tagName.trim().isEmpty()) {
+            for (String tag : tagName.split(",")) {
+                String tg = tag.trim();
+                if (!tg.isEmpty()) {
+                    taskController.addTag(taskId, tg);
+                    System.out.println("Tag '" + tg + "' added.");
+                }
+            }
         }
     }
 
-    private void handleAddCollaboratorToProject() {
-        System.out.println("\n-- Add Collaborator to Project --");
-        String projName = prompt("Project name");
-        if (projName.trim().isEmpty()) return;
-        Project project = projectController.getProjectByName(projName);
-        if (project == null) { System.out.println("Project not found."); return; }
-
-        String name = prompt("Collaborator name");
-        if (name.trim().isEmpty()) return;
+    private void handleCreateCollaborator() {
+        System.out.println("\n-- Create Collaborator --");
+        String name = prompt("Collaborator name (required)");
+        if (name.trim().isEmpty()) { System.out.println("Name is required."); return; }
         String catStr = prompt("Category (JUNIOR/INTERMEDIATE/SENIOR) [default: JUNIOR]");
         Category category = Category.fromString(catStr.trim().isEmpty() ? "JUNIOR" : catStr);
-
-        int cid = projectController.addCollaboratorToProject(project.getProjectId(), name, category);
-        if (cid != -1) System.out.println("Collaborator added with ID: " + cid);
+        int cid = projectController.createCollaborator(name, category);
+        if (cid != -1) System.out.println("Collaborator created with ID: " + cid + " (" + category + ")");
     }
 
     private void handleAssignCollaboratorToTask() {
@@ -287,38 +411,6 @@ public class Main {
 
         boolean success = taskController.assignCollaborator(taskId, collabId);
         if (success) System.out.println("Collaborator assigned successfully.");
-    }
-
-    private void handleICalExport() {
-        System.out.println("\n-- Export to iCal --");
-        System.out.println("  1. Single task");
-        System.out.println("  2. All tasks in a project");
-        System.out.println("  3. Filtered tasks");
-        String choice = prompt("Choice");
-        String filePath = prompt("Output file path [default: export.ics]");
-        if (filePath.trim().isEmpty()) filePath = "export.ics";
-
-        switch (choice.trim()) {
-            case "1":
-                String tid = prompt("Task ID");
-                try { icalController.exportTask(Integer.parseInt(tid.trim()), filePath); }
-                catch (NumberFormatException e) { System.out.println("Invalid ID."); }
-                break;
-            case "2":
-                String proj = prompt("Project name");
-                icalController.exportProject(proj, filePath);
-                break;
-            case "3":
-                SearchCriteria criteria = new SearchCriteria();
-                String name = prompt("Task name contains (blank to skip)");
-                if (!name.trim().isEmpty()) criteria.setNameMatch(name);
-                String status = prompt("Status (OPEN/COMPLETED/CANCELLED) (blank to skip)");
-                if (!status.trim().isEmpty()) criteria.setStatus(Status.fromString(status));
-                icalController.exportFiltered(criteria, filePath);
-                break;
-            default:
-                System.out.println("Invalid choice.");
-        }
     }
 
     private void printTaskDetails(Task t) {
@@ -365,12 +457,141 @@ public class Main {
         }
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    //  Project handlers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private void handleListProjects() {
+        System.out.println("\n-- All Projects --");
+        List<Project> projects = projectController.listProjects();
+        if (projects.isEmpty()) {
+            System.out.println("  (no projects found)");
+            return;
+        }
+        System.out.printf("%-5s %-30s %-40s%n", "ID", "Name", "Description");
+        System.out.println("-".repeat(90));
+        for (Project p : projects) {
+            System.out.printf("%-5d %-30s %-40s%n",
+                    p.getProjectId(),
+                    truncate(p.getName(), 29),
+                    truncate(p.getDescription() != null ? p.getDescription() : "-", 39));
+        }
+    }
+
+    private void handleCreateProject() {
+        System.out.println("\n-- Create Project --");
+        String name = prompt("Project name (required)");
+        if (name.trim().isEmpty()) { System.out.println("Name is required."); return; }
+        String desc = prompt("Description");
+        int pid = projectController.createProject(name, desc);
+        if (pid != -1) System.out.println("Project created with ID: " + pid);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  Collaborator handlers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private void handleAddCollaboratorToProject() {
+        System.out.println("\n-- Add Collaborator to Project --");
+        String projName = prompt("Project name");
+        if (projName.trim().isEmpty()) return;
+        Project project = projectController.getProjectByName(projName);
+        if (project == null) { System.out.println("Project not found."); return; }
+
+        String name = prompt("Collaborator name");
+        if (name.trim().isEmpty()) return;
+        String catStr = prompt("Category (JUNIOR/INTERMEDIATE/SENIOR) [default: JUNIOR]");
+        Category category = Category.fromString(catStr.trim().isEmpty() ? "JUNIOR" : catStr);
+
+        int cid = projectController.addCollaboratorToProject(project.getProjectId(), name, category);
+        if (cid != -1) System.out.println("Collaborator added with ID: " + cid);
+    }
+
+    private void handleOverloadedCollaborators() {
+        System.out.println("\n-- Overloaded Collaborators --");
+        List<Collaborator> overloaded = projectController.getOverloadedCollaborators();
+        if (overloaded.isEmpty()) {
+            System.out.println("  No overloaded collaborators.");
+            return;
+        }
+        System.out.printf("%-5s %-20s %-14s %-6s %-5s%n",
+                "ID", "Name", "Category", "Limit", "Count");
+        System.out.println("-".repeat(55));
+        for (Collaborator c : overloaded) {
+            System.out.printf("%-5d %-20s %-14s %-6d %-5d%n",
+                    c.getCollaboratorId(), c.getName(),
+                    c.getCategory(), c.getOpenTaskLimit(), c.getOpenTaskCount());
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  Import / Export handlers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private void handleImportCSV() {
+        System.out.println("\n-- Import Tasks from CSV --");
+        String path = prompt("File path (e.g. sample_tasks.csv)");
+        if (path.trim().isEmpty()) { System.out.println("No path given."); return; }
+        File file = new File(path);
+        if (!file.exists()) { System.out.println("File not found: " + path); return; }
+        ImportHandler.ImportSummary summary = importHandler.importTasksFromCSV(file);
+        System.out.println(summary);
+        if (!summary.errorMessages.isEmpty()) {
+            System.out.println("Errors:");
+            for (String e : summary.errorMessages) System.out.println("  " + e);
+        }
+    }
+
+    private void handleExportCSV() {
+        System.out.println("\n-- Export Tasks to CSV --");
+        String path = prompt("Output file path [default: tasks_export.csv]");
+        if (path.trim().isEmpty()) path = "tasks_export.csv";
+        importHandler.exportTasksToCSV(new File(path));
+    }
+
+    private void handleICalExport() {
+        System.out.println("\n-- Export to iCal --");
+        System.out.println("  1. Single task");
+        System.out.println("  2. All tasks in a project");
+        System.out.println("  3. Filtered tasks");
+        String choice = prompt("Choice");
+        String filePath = prompt("Output file path [default: export.ics]");
+        if (filePath.trim().isEmpty()) filePath = "export.ics";
+
+        switch (choice.trim()) {
+            case "1":
+                String tid = prompt("Task ID");
+                try { icalController.exportTask(Integer.parseInt(tid.trim()), filePath); }
+                catch (NumberFormatException e) { System.out.println("Invalid ID."); }
+                break;
+            case "2":
+                String proj = prompt("Project name");
+                icalController.exportProject(proj, filePath);
+                break;
+            case "3":
+                SearchCriteria criteria = new SearchCriteria();
+                String name = prompt("Task name contains (blank to skip)");
+                if (!name.trim().isEmpty()) criteria.setNameMatch(name);
+                String status = prompt("Status (OPEN/COMPLETED/CANCELLED) (blank to skip)");
+                if (!status.trim().isEmpty()) criteria.setStatus(Status.fromString(status));
+                icalController.exportFiltered(criteria, filePath);
+                break;
+            default:
+                System.out.println("Invalid choice.");
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  Utilities
+    // ─────────────────────────────────────────────────────────────────────────
+
     private String prompt(String label) {
         System.out.print("  " + label + ": ");
         return scanner.nextLine();
     }
 
     private LocalDate parseDate(String s) {
+        if (s.trim().equalsIgnoreCase("now")) return LocalDate.now();
         try {
             return LocalDate.parse(s.trim(), DATE_FMT);
         } catch (DateTimeParseException e) {

@@ -19,7 +19,9 @@ public class ImportHandler {
             "TaskName", "Description", "Subtask", "Status", "Priority",
             "DueDate", "ProjectName", "ProjectDescription", "Collaborator", "CollaboratorCategory"
     };
-    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    // AFTER
+    private static final DateTimeFormatter DATE_FMT     = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter DATE_FMT_ALT = DateTimeFormatter.ofPattern("M/d/yyyy");
 
     private final TaskController taskController;
     private final ProjectController projectController;
@@ -72,7 +74,11 @@ public class ImportHandler {
             try {
                 dueDate = LocalDate.parse(dueDateStr, DATE_FMT);
             } catch (DateTimeParseException e) {
-                throw new IllegalArgumentException("Invalid DueDate: " + dueDateStr);
+                try {
+                    dueDate = LocalDate.parse(dueDateStr, DATE_FMT_ALT);
+                } catch (DateTimeParseException e2) {
+                    throw new IllegalArgumentException("Invalid DueDate: " + dueDateStr);
+                }
             }
         }
 

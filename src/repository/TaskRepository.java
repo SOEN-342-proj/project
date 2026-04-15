@@ -326,9 +326,11 @@ public class TaskRepository {
         try (PreparedStatement d = conn.prepareStatement("DELETE FROM task_occurrences WHERE task_id=?")) {
             d.setInt(1, task.getTaskId()); d.executeUpdate();
         }
+        // Re-query max AFTER delete so IDs never collide with other tasks' occurrences
+        int nextId = maxPlusOne("task_occurrences", "occurrence_id");
         for (TaskOccurrence o : task.getOccurrences()) {
             try (PreparedStatement ps = conn.prepareStatement("INSERT INTO task_occurrences(occurrence_id,task_id,due_date,status) VALUES(?,?,?,?)")) {
-                ps.setInt(1, o.getOccurrenceId());
+                ps.setInt(1, nextId++);
                 ps.setInt(2, task.getTaskId());
                 ps.setString(3, o.getDueDate().toString());
                 ps.setString(4, o.getStatus().name());
