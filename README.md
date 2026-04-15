@@ -13,6 +13,11 @@
 - [Iteration 2](https://github.com/SOEN-342-proj/project/wiki/Iteration-2) — Design, Deployment and Proof of Concept
 - [Iteration 3](https://github.com/SOEN-342-proj/project/wiki/Iteration-3) —  Final Deployment and Features
 - [Iteration 4](https://github.com/SOEN-342-proj/project/wiki/Iteration-4) —  Final Delivery, State Machine & Demo Video
+
+## Demo Video
+
+[![SOEN 342 Task Manager Demo](https://img.youtube.com/vi/RMYXxyWHsCI/0.jpg)](https://youtu.be/RMYXxyWHsCI)
+
 ## How to Run the Proof of Concept
 
 ### Requirements
