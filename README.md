@@ -23,11 +23,31 @@
 
 ## How to Run the Proof of Concept
 
-### Requirements
+## Requirements
 - Java 11 or higher
 
-### Compile
+## Compile
+
+### Windows (PowerShell)
+```powershell
+New-Item -ItemType Directory -Force -Path .\out | Out-Null
+javac -cp ".\lib\*" -d .\out (dir .\src\*.java -Recurse | % { $_.FullName })
+```
+
+### macOS / Linux (Terminal)
 ```bash
-cd src
-javac -d ../out $(find . -name "*.java")
+mkdir -p out
+javac -cp "lib/*" -d out $(find src -name "*.java")
+```
+
+## Run
+
+### Windows
+```powershell
+java -cp ".\out;.\lib\*" Main
+```
+
+### macOS / Linux
+```bash
+java -cp "out:lib/*" Main
 ```
